@@ -817,17 +817,23 @@
       });
 
       // Subscribe to realtime changes
-      if (typeof SupaDB !== 'undefined' && SupaDB.isConnected()) {
-        var client = SupaDB.getClient();
-        if (client) {
-          client.channel('weapons-page')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'weapons' }, function () {
-              loadAllData().then(renderWeapons);
-            })
-            .subscribe();
-        }
-      }
-    });
+    async function loadWeapons() {
+
+  const { data, error } = await supabase
+    .from("weapons")
+    .select("*")
+    .order("rarity", { ascending: false });
+
+  if (error) {
+    console.error(error)
+    return
+  }
+
+  renderWeapons(data)
+}
+
+document.addEventListener("DOMContentLoaded", loadWeapons)
+   
 
     /* ── Load Data from Supabase ── */
     async function loadAllData() {
