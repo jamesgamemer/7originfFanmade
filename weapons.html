@@ -833,38 +833,53 @@ if (typeof supabase !== 'undefined') {
     });
 
     /* ── Load Data from Supabase ── */
-    async function loadAllData() {
-      if (typeof supabase === 'undefined')
-        console.warn('[Weapons] Supabase not connected, loading from local JSON fallback');
-        await loadFromJSON();
-        return;
-      }
+   async function loadAllData() {
 
-      var client = supabase;
-      if (!client) {
-        await loadFromJSON();
-        return;
-      }
+  if (typeof supabase === 'undefined') {
+    console.warn('[Weapons] Supabase not connected, loading from local JSON fallback');
+    await loadFromJSON();
+    return;
+  }
 
-      try {
-        // Fetch weapons
-        var wResult = await client.from('weapons').select('*').order('name_en', { ascending: true });
-        if (wResult.error) throw wResult.error;
-        allWeapons = wResult.data || [];
+  var client = supabase;
+  if (!client) {
+    await loadFromJSON();
+    return;
+  }
 
-        // Fetch characters (for linking)
-        var cResult = await client.from('characters').select('id, name, slug, image, rarity').order('name', { ascending: true });
-        allCharacters = (cResult.data || []);
+  try {
 
-        // Fetch weapon-character links
-        var wcResult = await client.from('weapon_characters').select('*').order('priority', { ascending: true });
-        weaponCharLinks = (wcResult.data || []);
+    // Fetch weapons
+    var wResult = await client
+      .from('weapons')
+      .select('*')
+      .order('name_en', { ascending: true });
 
-      } catch (err) {
-        console.warn('[Weapons] Supabase fetch failed, using JSON fallback:', err.message);
-        await loadFromJSON();
-      }
-    }
+    if (wResult.error) throw wResult.error;
+    allWeapons = wResult.data || [];
+
+    // Fetch characters
+    var cResult = await client
+      .from('characters')
+      .select('id, name, slug, image, rarity')
+      .order('name', { ascending: true });
+
+    allCharacters = cResult.data || [];
+
+    // Fetch links
+    var wcResult = await client
+      .from('weapon_characters')
+      .select('*')
+      .order('priority', { ascending: true });
+
+    weaponCharLinks = wcResult.data || [];
+
+  } catch (err) {
+    console.warn('[Weapons] Supabase fetch failed, using JSON fallback:', err.message);
+    await loadFromJSON();
+  }
+
+}
 
     /* ── JSON Fallback ── */
     async function loadFromJSON() {
