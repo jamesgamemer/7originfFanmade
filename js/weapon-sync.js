@@ -286,26 +286,13 @@ var WeaponSync = (function () {
     return name;
   }
 
-  
-function normalizeWeapon(raw) {
-  return {
-    name_en: raw.name,
-    slug: raw.slug || makeSlug(raw.name),
-    series: extractSeries(raw.name),
-    icon_url: raw.icon_url || '',
-    category: raw.type || raw.category || 'Unknown',
-    playstyle: raw.playstyle || 'Unknown',
-    role: raw.role || 'DPS',
-    range: raw.range || 'Melee',
-    rarity: raw.rarity || 4,
-    equipment_atk: raw.equipment_atk || 0,
-    sub_stat_type: raw.sub_stat_type || null,
-    sub_stat_value: raw.sub_stat_value || null,
-    passive_desc_en: raw.passive_description || null,
-    is_released: true
-  };
-}
-;
+  function normalizeWeapon(raw) {
+    var classification = WEAPON_TYPE_MAP[raw.type] || {
+      category: raw.type || 'Unknown',
+      playstyle: 'Unknown',
+      role: 'DPS',
+      range: 'Melee'
+    };
 
     return {
       name: raw.name,
@@ -702,3 +689,11 @@ function normalizeWeapon(raw) {
   };
 
 })();
+
+
+// ---- GLOBAL EXPORTS FIX (for admin.html buttons) ----
+if (typeof window !== "undefined") {
+  if (typeof runLocalSync !== "undefined") window.runLocalSync = runLocalSync;
+  if (typeof runManualSync !== "undefined") window.runManualSync = runManualSync;
+  if (typeof toggleAutoSync !== "undefined") window.toggleAutoSync = toggleAutoSync;
+}
