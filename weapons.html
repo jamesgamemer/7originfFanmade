@@ -821,16 +821,19 @@
 if (typeof supabase !== 'undefined') {
 
   supabase
-    .from('weapons')
-    .on('*', function () {
-      loadAllData().then(function () {
-        renderWeapons();
-      });
-    })
+    .channel('weapons-page')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'weapons' },
+      function () {
+        loadAllData().then(function () {
+          renderWeapons();
+        });
+      }
+    )
     .subscribe();
 
 }
-    });
 
     /* ── Load Data from Supabase ── */
    async function loadAllData() {
