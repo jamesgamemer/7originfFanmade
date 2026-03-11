@@ -1,80 +1,1165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weapons - 7DS Origin</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weapons - 7DS Origin</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="css/navbar-auth.css">
+  <style>
+    /* ============================================================
+       WEAPONS PAGE - AAA GAME DATABASE LAYOUT
+       ============================================================ */
+
+    /* ── Page Header ── */
+    .page-header {
+      background: linear-gradient(180deg, #0d1a3a 0%, var(--dark2) 100%);
+      padding: 80px 20px 50px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(96,165,250,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(96,165,250,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .page-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: linear-gradient(transparent, var(--dark2));
+    }
+    .page-header-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 900;
+      color: var(--gold);
+      text-shadow: 0 0 30px var(--glow-gold);
+      position: relative;
+      z-index: 1;
+    }
+    .page-header-sub {
+      color: var(--muted);
+      font-size: 15px;
+      letter-spacing: 2px;
+      margin-top: 10px;
+      position: relative;
+      z-index: 1;
+    }
+    .page-header-count {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 4px 16px;
+      border-radius: 20px;
+      background: rgba(240,192,64,0.1);
+      border: 1px solid rgba(240,192,64,0.2);
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Toolbar: Search + Filters + Sort ── */
+    .weapons-toolbar {
+      background: var(--dark3);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    .weapons-search-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .weapons-search {
+      flex: 1;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--dark2);
+      color: white;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      transition: border-color 0.2s;
+    }
+    .weapons-search:focus { outline: none; border-color: var(--gold); }
+    .weapons-search::placeholder { color: var(--muted); }
+    .weapons-sort {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--dark2);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      min-width: 160px;
+    }
+    .weapons-sort:focus { outline: none; border-color: var(--gold); }
+    .weapons-sort option { background: var(--dark3); color: var(--text); }
+
+    /* ── Filter Groups ── */
+    .filter-group { margin-bottom: 10px; }
+    .filter-group:last-child { margin-bottom: 0; }
+    .filter-group-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .filter-btn {
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .filter-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+    .filter-btn.active {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(240,192,64,0.1);
+    }
+    .filter-btn-icon {
+      width: 18px;
+      height: 18px;
+      vertical-align: middle;
+      margin-right: 4px;
+      border-radius: 3px;
+    }
+
+    /* ── Weapons List ── */
+    .weapons-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* ── Weapon Row (Collapsed) ── */
+    .weapon-row {
+      background: var(--dark3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .weapon-row:hover {
+      border-color: rgba(240,192,64,0.3);
+    }
+    .weapon-row.expanded {
+      border-color: var(--gold);
+      box-shadow: 0 4px 20px rgba(240,192,64,0.1);
+    }
+
+    /* ── Row Header (always visible) ── */
+    .weapon-row-header {
+      display: grid;
+      grid-template-columns: 56px 1fr auto auto auto auto 36px;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.15s;
+    }
+    .weapon-row-header:hover {
+      background: rgba(240,192,64,0.03);
+    }
+
+    /* Icon */
+    .weapon-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--dark2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .weapon-icon-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .weapon-icon-wrap .rarity-glow-5 {
+      box-shadow: inset 0 0 12px rgba(250,204,21,0.3);
+      border-color: rgba(250,204,21,0.4);
+    }
+    .weapon-icon-wrap .rarity-glow-4 {
+      box-shadow: inset 0 0 12px rgba(167,139,250,0.3);
+      border-color: rgba(167,139,250,0.4);
+    }
+
+    /* Name block */
+    .weapon-name-block {
+      min-width: 0;
+    }
+    .weapon-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .weapon-series {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Badges */
+    .weapon-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    .badge-category {
+      background: rgba(96,165,250,0.12);
+      color: var(--blue);
+      border: 1px solid rgba(96,165,250,0.2);
+    }
+    .badge-rarity-5 {
+      background: rgba(250,204,21,0.12);
+      color: var(--ssr);
+      border: 1px solid rgba(250,204,21,0.25);
+    }
+    .badge-rarity-4 {
+      background: rgba(167,139,250,0.12);
+      color: var(--sr);
+      border: 1px solid rgba(167,139,250,0.25);
+    }
+    .badge-role {
+      background: rgba(52,211,153,0.12);
+      color: #34d399;
+      border: 1px solid rgba(52,211,153,0.2);
+    }
+
+    /* Stats in row */
+    .weapon-stat-cell {
+      text-align: center;
+      min-width: 70px;
+    }
+    .weapon-stat-label {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .weapon-stat-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    /* Expand arrow */
+    .weapon-expand-icon {
+      font-size: 14px;
+      color: var(--muted);
+      transition: transform 0.25s;
+      text-align: center;
+    }
+    .weapon-row.expanded .weapon-expand-icon {
+      transform: rotate(180deg);
+      color: var(--gold);
+    }
+
+    /* ── Expanded Panel ── */
+    .weapon-expanded {
+      display: none;
+      border-top: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(30,41,59,0.5), var(--dark3));
+    }
+    .weapon-row.expanded .weapon-expanded {
+      display: block;
+    }
+    .weapon-expanded-inner {
+      padding: 20px;
+    }
+
+    /* Expanded grid: left = details, right = characters */
+    .weapon-detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    /* Detail section */
+    .weapon-detail-section {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .detail-card {
+      background: var(--dark2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .detail-card-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .detail-card-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 14px;
+      background: var(--gold);
+      border-radius: 2px;
+    }
+    .detail-card p {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* Stats grid inside detail */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .stat-item {
+      background: rgba(2,6,23,0.5);
+      border-radius: 8px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+    .stat-item-label {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .stat-item-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .stat-item-value.gold { color: var(--gold); }
+
+    /* ── Character Carousel Section ── */
+    .char-carousel-section {
+      display: flex;
+      flex-direction: column;
+    }
+    .char-carousel-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .char-carousel-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 14px;
+      background: var(--gold);
+      border-radius: 2px;
+    }
+
+    /* Horizontal carousel container */
+    .char-carousel-wrap {
+      position: relative;
+    }
+    .char-carousel {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      padding: 4px 0 12px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .char-carousel::-webkit-scrollbar {
+      height: 4px;
+    }
+    .char-carousel::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .char-carousel::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    /* Carousel navigation arrows */
+    .carousel-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-60%);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(11,16,32,0.9);
+      border: 1px solid var(--border);
+      color: var(--gold);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      transition: all 0.2s;
+      opacity: 0;
+    }
+    .char-carousel-wrap:hover .carousel-arrow {
+      opacity: 1;
+    }
+    .carousel-arrow:hover {
+      background: rgba(240,192,64,0.15);
+      border-color: var(--gold);
+    }
+    .carousel-arrow.left { left: -12px; }
+    .carousel-arrow.right { right: -12px; }
+
+    /* Character portrait card */
+    .char-portrait {
+      flex-shrink: 0;
+      width: 90px;
+      background: var(--dark2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      text-align: center;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--text);
+    }
+    .char-portrait:hover {
+      transform: translateY(-4px);
+      border-color: var(--gold);
+      box-shadow: 0 6px 16px rgba(240,192,64,0.15);
+    }
+    .char-portrait-img {
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      display: block;
+      background: var(--dark3);
+    }
+    .char-portrait-name {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 5px 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .char-portrait-badge {
+      display: block;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 0;
+      letter-spacing: 0.5px;
+    }
+    .char-portrait-badge.signature {
+      background: rgba(250,204,21,0.15);
+      color: var(--ssr);
+    }
+    .char-portrait-badge.recommended {
+      background: rgba(96,165,250,0.15);
+      color: var(--blue);
+    }
+
+    /* Empty characters state */
+    .char-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 20px;
+      color: var(--muted);
+      font-size: 13px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    /* ── Skeleton Loaders ── */
+    .skeleton-weapon-row {
+      background: var(--dark3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+    }
+    .skeleton-weapon-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      background: linear-gradient(90deg, var(--dark3) 0%, #1e293b 40%, var(--dark3) 80%);
+      background-size: 200px 100%;
+      animation: skeleton-pulse 1.5s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    .skeleton-weapon-text {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .skeleton-weapon-line {
+      height: 14px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--dark3) 0%, #1e293b 40%, var(--dark3) 80%);
+      background-size: 200px 100%;
+      animation: skeleton-pulse 1.5s ease-in-out infinite;
+    }
+    .skeleton-weapon-line.w60 { width: 60%; }
+    .skeleton-weapon-line.w30 { width: 30%; }
+
+    /* ── No Results ── */
+    .weapons-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    .weapons-empty-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+    .weapons-empty-text {
+      font-size: 16px;
+      letter-spacing: 1px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .weapon-detail-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 768px) {
+      .weapon-row-header {
+        grid-template-columns: 48px 1fr auto 28px;
+        gap: 8px;
+        padding: 8px 12px;
+      }
+      .weapon-stat-cell,
+      .badge-role {
+        display: none;
+      }
+      .weapon-icon-wrap {
+        width: 40px;
+        height: 40px;
+      }
+      .weapon-name { font-size: 13px; }
+      .weapons-search-row { flex-direction: column; }
+      .weapons-sort { min-width: unset; }
+      .char-portrait { width: 76px; }
+    }
+    @media (max-width: 480px) {
+      .badge-category { display: none; }
+      .weapon-row-header {
+        grid-template-columns: 40px 1fr auto 24px;
+      }
+    }
+  </style>
 </head>
 <body>
 
-<h2>Weapons Page (Fixed)</h2>
+  <!-- Admin Bar -->
+  <div class="admin-bar" id="adminBar" style="display:none;">
+    <div class="admin-bar-left">
+      <span class="admin-badge">ADMIN</span>
+      <a href="admin.html" class="admin-bar-link">Dashboard</a>
+      <a href="admin.html#weapons" class="admin-bar-link">+ Add Weapon</a>
+    </div>
+    <div class="admin-bar-right">
+      <button class="admin-bar-btn" onclick="Auth.logout()">Logout</button>
+    </div>
+  </div>
 
-<div id="weaponCount">Loading...</div>
-<input id="weaponSearch" placeholder="Search weapon">
-<div id="weaponsList"></div>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-logo">7DS<span>Origin</span></a>
+    <div class="navbar-hamburger" id="navHam"><span></span><span></span><span></span></div>
+    <ul class="navbar-links" id="navLinks">
+      <li><a href="index.html">&#127968; Home</a></li>
+      <li><a href="characters.html">&#9876; Characters</a></li>
+      <li><a href="weapons.html" class="active">&#128481; Weapons</a></li>
+      <li><a href="tierlist.html">&#127942; Tier List</a></li>
+      <li><a href="events.html">&#127881; Events</a></li>
+      <li><a href="guides.html">&#128218; Guides</a></li>
+    </ul>
+  </nav>
 
-<script>
-(function(){
+  <!-- Page Content -->
+  <div class="page-content">
 
-'use strict';
+    <!-- Header -->
+    <div class="page-header">
+      <div class="page-header-title">&#128481; Weapons Database</div>
+      <div class="page-header-sub">Browse All Weapons &bull; Filter by Category &bull; View Recommended Characters</div>
+      <div class="page-header-count" id="weaponCount">Loading...</div>
+    </div>
 
-var allWeapons=[];
-var filters={search:''};
+    <div class="container">
 
-var $list=document.getElementById('weaponsList');
-var $search=document.getElementById('weaponSearch');
-var $count=document.getElementById('weaponCount');
+      <!-- Toolbar -->
+      <div class="weapons-toolbar">
+        <div class="weapons-search-row">
+          <input type="text" class="weapons-search" id="weaponSearch" placeholder="&#128269; Search weapons by name or series...">
+          <select class="weapons-sort" id="weaponSort">
+            <option value="name-asc">Name A-Z</option>
+            <option value="name-desc">Name Z-A</option>
+            <option value="atk-desc">ATK High-Low</option>
+            <option value="atk-asc">ATK Low-High</option>
+            <option value="rarity-desc" selected>Rarity High-Low</option>
+            <option value="rarity-asc">Rarity Low-High</option>
+            <option value="newest">Newest First</option>
+          </select>
+        </div>
 
-document.addEventListener('DOMContentLoaded',async function(){
+        <!-- Category Filters -->
+        <div class="filter-group">
+          <div class="filter-group-label">Category</div>
+          <div class="filter-row" id="categoryFilters">
+            <button class="filter-btn active" data-filter="category" data-value="all">All</button>
+          </div>
+        </div>
 
-await loadAllData();
-renderWeapons();
+        <!-- Rarity Filters -->
+        <div class="filter-group">
+          <div class="filter-group-label">Rarity</div>
+          <div class="filter-row" id="rarityFilters">
+            <button class="filter-btn active" data-filter="rarity" data-value="all">All</button>
+            <button class="filter-btn" data-filter="rarity" data-value="5">&#11088; 5-Star</button>
+            <button class="filter-btn" data-filter="rarity" data-value="4">&#10024; 4-Star</button>
+          </div>
+        </div>
 
-$search.addEventListener('input',function(){
-filters.search=this.value.toLowerCase();
-renderWeapons();
-});
+        <!-- Role Filters -->
+        <div class="filter-group">
+          <div class="filter-group-label">Role</div>
+          <div class="filter-row" id="roleFilters">
+            <button class="filter-btn active" data-filter="role" data-value="all">All</button>
+            <button class="filter-btn" data-filter="role" data-value="DPS">DPS</button>
+            <button class="filter-btn" data-filter="role" data-value="Support">Support</button>
+            <button class="filter-btn" data-filter="role" data-value="Healer">Healer</button>
+            <button class="filter-btn" data-filter="role" data-value="Tank">Tank</button>
+          </div>
+        </div>
+      </div>
 
-}); // FIXED closing DOMContentLoaded
+      <!-- Weapons List -->
+      <div class="weapons-list" id="weaponsList">
+        <!-- Skeleton loaders -->
+        <div class="skeleton-weapon-row"><div class="skeleton-weapon-icon"></div><div class="skeleton-weapon-text"><div class="skeleton-weapon-line w60"></div><div class="skeleton-weapon-line w30"></div></div></div>
+        <div class="skeleton-weapon-row"><div class="skeleton-weapon-icon"></div><div class="skeleton-weapon-text"><div class="skeleton-weapon-line w60"></div><div class="skeleton-weapon-line w30"></div></div></div>
+        <div class="skeleton-weapon-row"><div class="skeleton-weapon-icon"></div><div class="skeleton-weapon-text"><div class="skeleton-weapon-line w60"></div><div class="skeleton-weapon-line w30"></div></div></div>
+        <div class="skeleton-weapon-row"><div class="skeleton-weapon-icon"></div><div class="skeleton-weapon-text"><div class="skeleton-weapon-line w60"></div><div class="skeleton-weapon-line w30"></div></div></div>
+        <div class="skeleton-weapon-row"><div class="skeleton-weapon-icon"></div><div class="skeleton-weapon-text"><div class="skeleton-weapon-line w60"></div><div class="skeleton-weapon-line w30"></div></div></div>
+        <div class="skeleton-weapon-row"><div class="skeleton-weapon-icon"></div><div class="skeleton-weapon-text"><div class="skeleton-weapon-line w60"></div><div class="skeleton-weapon-line w30"></div></div></div>
+      </div>
 
-async function loadAllData(){
-allWeapons=[
-{name_en:"Example Sword",equipment_atk:120},
-{name_en:"Example Axe",equipment_atk:150}
-];
-}
+    </div>
+  </div>
 
-function getFilteredWeapons(){
-return allWeapons.filter(function(w){
-var name=(w.name_en||'').toLowerCase();
-if(filters.search && name.indexOf(filters.search)===-1) return false;
-return true;
-});
-}
+  <!-- Footer -->
+  <footer class="site-footer">
+    <p>7DS Origin Database &mdash; Fan-made site &mdash; Not affiliated with Netmarble</p>
+    <p style="margin-top:8px;">
+      <a href="index.html">Home</a> &nbsp;&bull;&nbsp;
+      <a href="characters.html">Characters</a> &nbsp;&bull;&nbsp;
+      <a href="weapons.html">Weapons</a> &nbsp;&bull;&nbsp;
+      <a href="tierlist.html">Tier List</a> &nbsp;&bull;&nbsp;
+      <a href="events.html">Events</a> &nbsp;&bull;&nbsp;
+      <a href="guides.html">Guides</a>
+    </p>
+  </footer>
 
-function renderWeapons(){
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/navbar.js"></script>
+  <script>
+  /* ============================================================
+     WEAPONS PAGE - APPLICATION LOGIC
+     ============================================================ */
+  (function () {
+    'use strict';
 
-var weapons=getFilteredWeapons();
+    /* ── State ── */
+    var allWeapons = [];
+    var allCharacters = [];
+    var weaponCharLinks = [];
+    var filters = {
+      search: '',
+      category: 'all',
+      rarity: 'all',
+      role: 'all',
+      sort: 'rarity-desc'
+    };
+    var expandedId = null;
 
-$count.textContent="Showing "+weapons.length+" weapons";
+    /* ── DOM refs ── */
+    var $list = document.getElementById('weaponsList');
+    var $search = document.getElementById('weaponSearch');
+    var $sort = document.getElementById('weaponSort');
+    var $count = document.getElementById('weaponCount');
+    var $catFilters = document.getElementById('categoryFilters');
 
-if(weapons.length===0){
-$list.innerHTML="No weapons";
-return;
-}
+    /* ── Init ── */
+    document.addEventListener('DOMContentLoaded', async function () {
+      // i18n
+      if (typeof I18n !== 'undefined') { I18n.init(); }
 
-var html='';
+      // Auth check
+      try {
+        var admin = await Auth.isLoggedIn();
+        if (admin) {
+          var bar = document.getElementById('adminBar');
+          if (bar) bar.style.display = 'flex';
+        }
+      } catch (e) {}
 
-weapons.forEach(function(w){
-html+='<div>'+w.name_en+' - ATK '+w.equipment_atk+'</div>';
-});
+      // Load data
+      await loadAllData();
 
-$list.innerHTML=html;
+      // Build dynamic category filters
+      buildCategoryFilters();
 
-}
+      // Render
+      renderWeapons();
 
-})();
-</script>
+      // Events
+      $search.addEventListener('input', function () {
+        filters.search = this.value.toLowerCase();
+        renderWeapons();
+      });
 
+      $sort.addEventListener('change', function () {
+        filters.sort = this.value;
+        renderWeapons();
+      });
+
+      // Filter button delegation
+      document.querySelectorAll('.filter-row').forEach(function (row) {
+        row.addEventListener('click', function (e) {
+          var btn = e.target.closest('.filter-btn');
+          if (!btn) return;
+          var filterType = btn.dataset.filter;
+          var value = btn.dataset.value;
+
+          // Update active state within group
+          row.querySelectorAll('.filter-btn').forEach(function (b) {
+            b.classList.remove('active');
+          });
+          btn.classList.add('active');
+
+          filters[filterType] = value;
+          renderWeapons();
+        });
+      });
+
+      // Subscribe to realtime changes
+      if (typeof SupaDB !== 'undefined' && SupaDB.isConnected()) {
+        var client = SupaDB.getClient();
+        if (client) {
+          client.channel('weapons-page')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'weapons' }, function () {
+              loadAllData().then(renderWeapons);
+            })
+            .subscribe();
+        }
+      }
+    });
+
+    /* ── Load Data from Supabase ── */
+    async function loadAllData() {
+      if (typeof SupaDB === 'undefined' || !SupaDB.isConnected()) {
+        console.warn('[Weapons] Supabase not connected, loading from local JSON fallback');
+        await loadFromJSON();
+        return;
+      }
+
+      var client = SupaDB.getClient();
+      if (!client) {
+        await loadFromJSON();
+        return;
+      }
+
+      try {
+        // Fetch weapons
+        var wResult = await client.from('weapons').select('*').order('name_en', { ascending: true });
+        if (wResult.error) throw wResult.error;
+        allWeapons = wResult.data || [];
+
+        // Fetch characters (for linking)
+        var cResult = await client.from('characters').select('id, name, slug, image, rarity').order('name', { ascending: true });
+        allCharacters = (cResult.data || []);
+
+        // Fetch weapon-character links
+        var wcResult = await client.from('weapon_characters').select('*').order('priority', { ascending: true });
+        weaponCharLinks = (wcResult.data || []);
+
+      } catch (err) {
+        console.warn('[Weapons] Supabase fetch failed, using JSON fallback:', err.message);
+        await loadFromJSON();
+      }
+    }
+
+    /* ── JSON Fallback ── */
+    async function loadFromJSON() {
+      try {
+        var resp = await fetch('data/weapons.json');
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        var data = await resp.json();
+        allWeapons = (data.weapons || data || []).map(function (w) {
+          return {
+            id: w.slug,
+            name_en: w.name || w.name_en || '',
+            slug: w.slug || '',
+            series: w.series || '',
+            category: w.category || '',
+            playstyle: w.playstyle || '',
+            role: w.role || 'DPS',
+            range: w.range || 'Melee',
+            rarity: w.rarity || 5,
+            equipment_atk: w.equipment_atk || 0,
+            sub_stat_type: w.sub_stat_type || '',
+            sub_stat_value: w.sub_stat_value || '',
+            passive_desc_en: w.passive_description || w.passive_desc_en || '',
+            icon_url: w.icon_url || '',
+            tier: w.tier || 'B'
+          };
+        });
+      } catch (e) {
+        console.error('[Weapons] Failed to load JSON fallback:', e);
+        allWeapons = [];
+      }
+    }
+
+    /* ── Build Dynamic Category Filters ── */
+    function buildCategoryFilters() {
+      var categories = {};
+      allWeapons.forEach(function (w) {
+        if (w.category) categories[w.category] = (categories[w.category] || 0) + 1;
+      });
+
+      var sorted = Object.keys(categories).sort();
+      var html = '<button class="filter-btn active" data-filter="category" data-value="all">All</button>';
+      sorted.forEach(function (cat) {
+        html += '<button class="filter-btn" data-filter="category" data-value="' + cat + '">' + cat + ' <span style="opacity:0.5;font-size:10px;">(' + categories[cat] + ')</span></button>';
+      });
+      $catFilters.innerHTML = html;
+    }
+
+    /* ── Filter + Sort ── */
+    function getFilteredWeapons() {
+      var result = allWeapons.filter(function (w) {
+        var name = (w.name_en || '').toLowerCase();
+        var series = (w.series || '').toLowerCase();
+
+        // Search
+        if (filters.search && name.indexOf(filters.search) === -1 && series.indexOf(filters.search) === -1) {
+          return false;
+        }
+        // Category
+        if (filters.category !== 'all' && w.category !== filters.category) return false;
+        // Rarity
+        if (filters.rarity !== 'all' && String(w.rarity) !== filters.rarity) return false;
+        // Role
+        if (filters.role !== 'all' && w.role !== filters.role) return false;
+
+        return true;
+      });
+
+      // Sort
+      var sortKey = filters.sort;
+      result.sort(function (a, b) {
+        switch (sortKey) {
+          case 'name-asc': return (a.name_en || '').localeCompare(b.name_en || '');
+          case 'name-desc': return (b.name_en || '').localeCompare(a.name_en || '');
+          case 'atk-desc': return (b.equipment_atk || 0) - (a.equipment_atk || 0);
+          case 'atk-asc': return (a.equipment_atk || 0) - (b.equipment_atk || 0);
+          case 'rarity-desc':
+            if (b.rarity !== a.rarity) return b.rarity - a.rarity;
+            return (a.name_en || '').localeCompare(b.name_en || '');
+          case 'rarity-asc':
+            if (a.rarity !== b.rarity) return a.rarity - b.rarity;
+            return (a.name_en || '').localeCompare(b.name_en || '');
+          case 'newest':
+            return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+          default: return 0;
+        }
+      });
+
+      return result;
+    }
+
+    /* ── Render Weapons List ── */
+    function renderWeapons() {
+      var weapons = getFilteredWeapons();
+
+      // Update count
+      $count.textContent = 'Showing ' + weapons.length + ' of ' + allWeapons.length + ' Weapons';
+
+      if (weapons.length === 0) {
+        $list.innerHTML =
+          '<div class="weapons-empty">' +
+            '<div class="weapons-empty-icon">&#128481;</div>' +
+            '<div class="weapons-empty-text">No weapons found matching your filters.</div>' +
+          '</div>';
+        return;
+      }
+
+      var html = '';
+      weapons.forEach(function (w) {
+        var isExpanded = (expandedId === (w.id || w.slug));
+        var rarityClass = w.rarity === 5 ? 'badge-rarity-5' : 'badge-rarity-4';
+        var rarityLabel = w.rarity === 5 ? '&#11088; 5-Star' : '&#10024; 4-Star';
+        var iconGlow = w.rarity === 5 ? 'rarity-glow-5' : 'rarity-glow-4';
+        var wId = w.id || w.slug;
+
+        html += '<div class="weapon-row' + (isExpanded ? ' expanded' : '') + '" data-weapon-id="' + wId + '">';
+
+        // ── Row Header ──
+        html += '<div class="weapon-row-header" onclick="WeaponsPage.toggle(\'' + wId + '\')">';
+
+        // Icon
+        html += '<div class="weapon-icon-wrap ' + iconGlow + '">';
+        html += '<img src="' + (w.icon_url || 'https://placehold.co/48x48/111827/666?text=?') + '" alt="' + (w.name_en || '') + '" loading="lazy" onerror="this.src=\'https://placehold.co/48x48/111827/666?text=?\'">';
+        html += '</div>';
+
+        // Name block
+        html += '<div class="weapon-name-block">';
+        html += '<div class="weapon-name">' + (w.name_en || 'Unknown') + '</div>';
+        html += '<div class="weapon-series">' + (w.series || '') + '</div>';
+        html += '</div>';
+
+        // Category badge
+        html += '<span class="weapon-badge badge-category">' + (w.category || '') + '</span>';
+
+        // Rarity badge
+        html += '<span class="weapon-badge ' + rarityClass + '">' + rarityLabel + '</span>';
+
+        // Role badge (hidden on mobile)
+        html += '<span class="weapon-badge badge-role">' + (w.role || 'DPS') + '</span>';
+
+        // ATK stat
+        html += '<div class="weapon-stat-cell">';
+        html += '<div class="weapon-stat-label">ATK</div>';
+        html += '<div class="weapon-stat-value">' + (w.equipment_atk || '—') + '</div>';
+        html += '</div>';
+
+        // Expand icon
+        html += '<div class="weapon-expand-icon">&#9660;</div>';
+
+        html += '</div>'; // end header
+
+        // ── Expanded Panel ──
+        html += '<div class="weapon-expanded">';
+        html += '<div class="weapon-expanded-inner">';
+        html += '<div class="weapon-detail-grid">';
+
+        // Left: Details
+        html += '<div class="weapon-detail-section">';
+
+        // Stats card
+        html += '<div class="detail-card">';
+        html += '<div class="detail-card-title">Weapon Stats</div>';
+        html += '<div class="stats-grid">';
+        html += '<div class="stat-item"><div class="stat-item-label">Equipment ATK</div><div class="stat-item-value gold">' + (w.equipment_atk || '—') + '</div></div>';
+        html += '<div class="stat-item"><div class="stat-item-label">' + (w.sub_stat_type || 'Sub Stat') + '</div><div class="stat-item-value">' + (w.sub_stat_value || '—') + '</div></div>';
+        html += '<div class="stat-item"><div class="stat-item-label">Category</div><div class="stat-item-value">' + (w.category || '—') + '</div></div>';
+        html += '<div class="stat-item"><div class="stat-item-label">Range</div><div class="stat-item-value">' + (w.range || '—') + '</div></div>';
+        html += '</div>'; // stats-grid
+        html += '</div>'; // detail-card
+
+        // Passive card
+        if (w.passive_desc_en) {
+          html += '<div class="detail-card">';
+          html += '<div class="detail-card-title">Passive Ability</div>';
+          html += '<p>' + w.passive_desc_en + '</p>';
+          html += '</div>';
+        }
+
+        html += '</div>'; // weapon-detail-section
+
+        // Right: Character Carousel
+        html += '<div class="char-carousel-section">';
+        html += '<div class="char-carousel-title">Recommended Characters</div>';
+        html += buildCharacterCarousel(w);
+        html += '</div>';
+
+        html += '</div>'; // weapon-detail-grid
+        html += '</div>'; // weapon-expanded-inner
+        html += '</div>'; // weapon-expanded
+
+        html += '</div>'; // weapon-row
+      });
+
+      $list.innerHTML = html;
+    }
+
+    /* ── Build Character Carousel HTML ── */
+    function buildCharacterCarousel(weapon) {
+      var wId = weapon.id || weapon.slug;
+      var links = weaponCharLinks.filter(function (l) {
+        return l.weapon_id === wId;
+      });
+
+      if (links.length === 0 && allCharacters.length === 0) {
+        return '<div class="char-empty">No character data linked yet. Manage links in the Admin Dashboard.</div>';
+      }
+
+      // If we have links, show linked characters
+      if (links.length > 0) {
+        var html = '<div class="char-carousel-wrap">';
+        html += '<button class="carousel-arrow left" onclick="WeaponsPage.scrollCarousel(this, -1)">&#10094;</button>';
+        html += '<div class="char-carousel">';
+
+        links.forEach(function (link) {
+          var char = allCharacters.find(function (c) { return c.id === link.character_id; });
+          if (!char) return;
+
+          var badgeClass = link.is_signature ? 'signature' : 'recommended';
+          var badgeText = link.is_signature ? 'SIGNATURE' : 'REC #' + link.priority;
+
+          html += '<a href="character.html?slug=' + encodeURIComponent(char.slug) + '" class="char-portrait">';
+          html += '<img class="char-portrait-img" src="' + (char.image || 'https://placehold.co/90x120/111827/666?text=?') + '" alt="' + char.name + '" loading="lazy" onerror="this.src=\'https://placehold.co/90x120/111827/666?text=?\'">';
+          html += '<span class="char-portrait-badge ' + badgeClass + '">' + badgeText + '</span>';
+          html += '<div class="char-portrait-name">' + char.name + '</div>';
+          html += '</a>';
+        });
+
+        html += '</div>'; // char-carousel
+        html += '<button class="carousel-arrow right" onclick="WeaponsPage.scrollCarousel(this, 1)">&#10095;</button>';
+        html += '</div>'; // char-carousel-wrap
+        return html;
+      }
+
+      // Fallback: show characters that match the weapon category
+      var matchingChars = allCharacters.filter(function (c) {
+        var types = c.types || [];
+        return types.some(function (t) {
+          return t.toLowerCase() === (weapon.category || '').toLowerCase();
+        });
+      });
+
+      if (matchingChars.length === 0) {
+        return '<div class="char-empty">No characters currently use this weapon type. Check back later!</div>';
+      }
+
+      var html = '<div class="char-carousel-wrap">';
+      html += '<button class="carousel-arrow left" onclick="WeaponsPage.scrollCarousel(this, -1)">&#10094;</button>';
+      html += '<div class="char-carousel">';
+
+      matchingChars.forEach(function (char) {
+        html += '<a href="character.html?slug=' + encodeURIComponent(char.slug) + '" class="char-portrait">';
+        html += '<img class="char-portrait-img" src="' + (char.image || 'https://placehold.co/90x120/111827/666?text=?') + '" alt="' + char.name + '" loading="lazy" onerror="this.src=\'https://placehold.co/90x120/111827/666?text=?\'">';
+        html += '<span class="char-portrait-badge recommended">COMPATIBLE</span>';
+        html += '<div class="char-portrait-name">' + char.name + '</div>';
+        html += '</a>';
+      });
+
+      html += '</div>';
+      html += '<button class="carousel-arrow right" onclick="WeaponsPage.scrollCarousel(this, 1)">&#10095;</button>';
+      html += '</div>';
+      return html;
+    }
+
+    /* ── Toggle Expand ── */
+    function toggleExpand(id) {
+      if (expandedId === id) {
+        expandedId = null;
+      } else {
+        expandedId = id;
+      }
+      renderWeapons();
+
+      // Scroll to expanded row
+      if (expandedId) {
+        setTimeout(function () {
+          var row = document.querySelector('[data-weapon-id="' + expandedId + '"]');
+          if (row) {
+            row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }, 50);
+      }
+    }
+
+    /* ── Carousel Scroll ── */
+    function scrollCarousel(btn, direction) {
+      var wrap = btn.closest('.char-carousel-wrap');
+      var carousel = wrap.querySelector('.char-carousel');
+      if (!carousel) return;
+      var scrollAmount = 200;
+      carousel.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+    }
+
+    /* ── Public API ── */
+    window.WeaponsPage = {
+      toggle: toggleExpand,
+      scrollCarousel: scrollCarousel
+    };
+
+  })();
+  </script>
 </body>
 </html>
