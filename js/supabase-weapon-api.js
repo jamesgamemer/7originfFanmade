@@ -17,7 +17,7 @@ var WeaponDB = (function () {
       .from('weapons')
       .select('*')
       .order('rarity', { ascending: false })
-      .order('name', { ascending: true });
+      .order('name_en', { ascending: true });
     if (error) { console.error('[WeaponDB] fetchAll error:', error.message); return []; }
     return data || [];
   }
@@ -42,7 +42,7 @@ var WeaponDB = (function () {
       .select('*')
       .eq('category', category)
       .order('rarity', { ascending: false })
-      .order('name', { ascending: true });
+      .order('name_en', { ascending: true });
     if (error) { console.error('[WeaponDB] fetchByCategory error:', error.message); return []; }
     return data || [];
   }
