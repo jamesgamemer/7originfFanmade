@@ -817,9 +817,11 @@
       });
 
       // Subscribe to realtime changes
-if (typeof supabase !== 'undefined') {
+if (typeof SupaDB !== 'undefined' && SupaDB.getClient) {
 
-  supabase
+  const client = SupaDB.getClient();
+
+  client
     .channel('weapons-page')
     .on(
       'postgres_changes',
