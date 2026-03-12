@@ -384,7 +384,7 @@ var WeaponDB = (function () {
 
     var { data, error } = await client
       .from('weapons')
-      .upsert(sanitized, { onConflict: 'slug' })
+      .upsert(sanitized, { ignoreDuplicates: true })
       .select();
 
     if (error) {
