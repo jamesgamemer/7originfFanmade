@@ -863,7 +863,7 @@ function filterWeaponList(){
       linkedCharacterIds=new Set();signatureCharIds=new Set();
       document.getElementById('weaponFormTitle').textContent='Edit: '+w.name;
       document.getElementById('editWeaponId').value=w.id||'';
-      document.getElementById('wpnName').value=w.name||'';
+      document.getElementById('wpnName').value = w.name_en || w.name || '';
       document.getElementById('wpnNameTh').value=w.name_th||'';
       document.getElementById('wpnSlug').value=w.slug||'';
       document.getElementById('wpnSeries').value=w.series||'';
