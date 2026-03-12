@@ -715,51 +715,112 @@
     /* ══════════════════════════════════════════════════════════
        WEAPONS DASHBOARD
        ══════════════════════════════════════════════════════════ */
-    async function loadWeaponsFromDB(){
-      if(typeof WeaponDB!=='undefined'&&SupaDB.isConnected()){
-        allWeapons=await WeaponDB.fetchAll();
-      }
-      if(!allWeapons||allWeapons.length===0){
-        try{var r=await fetch('data/weapons.json');if(r.ok)allWeapons=await r.json();}catch(e){allWeapons=[];}
-      }
-    }
-    function renderWeaponDashboard(){
-      var w=allWeapons||[];
-      var r5=w.filter(x=>x.rarity==5||x.rarity==='5').length;
-      var r4=w.filter(x=>x.rarity==4||x.rarity==='4').length;
-      var cats=new Set();w.forEach(x=>{if(x.category)cats.add(x.category)});
-      document.getElementById('weaponStats').innerHTML=
-        '<div class="stat-card"><div class="stat-num">'+w.length+'</div><div class="stat-label">Total</div></div>'+
-        '<div class="stat-card ssr"><div class="stat-num">'+r5+'</div><div class="stat-label">5-Star</div></div>'+
-        '<div class="stat-card sr"><div class="stat-num">'+r4+'</div><div class="stat-label">4-Star</div></div>'+
-        '<div class="stat-card"><div class="stat-num">'+cats.size+'</div><div class="stat-label">Categories</div></div>';
-      renderWeaponList(w);
-    }
-    function renderWeaponList(weapons){
-      if(!weapons||weapons.length===0){
-        document.getElementById('adminWeaponList').innerHTML='<div style="text-align:center;padding:60px 20px;color:#64748b;"><p style="font-size:48px;margin-bottom:16px;">&#128481;</p><p>No weapons found</p><button class="btn btn-gold" onclick="showAddWeaponForm()" style="margin-top:12px;">+ Add Weapon</button></div>';return;
-      }
-      var h='';
-      weapons.forEach(function(w){
-        var icon=w.icon_url||w.image||'https://placehold.co/80x80?text=No+Icon';
-        var rarityClass=w.rarity==5?'ssr':'sr';
-        var rarityLabel=w.rarity==5?'5&#9733;':'4&#9733;';
-        var tc={S:'#dc2626',A:'#f59e0b',B:'#3b82f6',C:'#6b7280'};
-        var tierBadge='<span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;background:'+(tc[w.tier]||tc.B)+';color:#fff;margin-left:6px;">'+(w.tier||'B')+'</span>';
-        h+='<div class="admin-char-row" data-name="'+(w.name||'').toLowerCase()+'">';
-        h+='<div class="admin-char-info"><img src="'+icon+'" alt="'+(w.name||'')+'" class="admin-char-thumb" style="border-radius:8px;object-fit:contain;background:var(--dark3);" onerror="this.src=\'https://placehold.co/80x80?text=Error\'"><div>';
-        h+='<div class="admin-char-name">'+(w.name||'Unknown')+tierBadge+'</div>';
-        h+='<div class="admin-char-meta"><span class="rarity-tag '+rarityClass+'">'+rarityLabel+'</span> &bull; '+(w.category||'N/A')+' &bull; '+(w.role||'DPS')+' &bull; ATK '+(w.equipment_atk||'?')+'</div>';
-        h+='</div></div><div class="admin-char-actions">';
-        h+='<a href="weapons.html" class="action-btn view-btn" title="View">&#128065;</a>';
-        h+='<button class="action-btn edit-btn" title="Edit" onclick="editWeapon(\''+(w.id||w.slug)+'\')">&#9998;</button>';
-        h+='<button class="action-btn delete-btn" title="Delete" onclick="deleteWeapon(\''+(w.id||w.slug)+'\',\''+(w.name||'').replace(/'/g,"\\'")+'\')">&#128465;</button>';
-        h+='</div></div>';
-      });
-      document.getElementById('adminWeaponList').innerHTML=h;
-    }
-    function filterWeaponList(){var s=document.getElementById('weaponAdminSearch').value.toLowerCase();document.querySelectorAll('#adminWeaponList .admin-char-row').forEach(r=>{r.style.display=(r.getAttribute('data-name')||'').indexOf(s)!==-1?'':'none'})}
+async function loadWeaponsFromDB(){
+  if(typeof WeaponDB!=='undefined' && SupaDB.isConnected()){
+    allWeapons = await WeaponDB.fetchAll();
+  }
 
+  if(!allWeapons || allWeapons.length===0){
+    try{
+      var r = await fetch('data/weapons.json');
+      if(r.ok) allWeapons = await r.json();
+    }catch(e){
+      allWeapons = [];
+    }
+  }
+}
+
+function renderWeaponDashboard(){
+  var w = allWeapons || [];
+
+  var r5 = w.filter(x => x.rarity == 5 || x.rarity === '5').length;
+  var r4 = w.filter(x => x.rarity == 4 || x.rarity === '4').length;
+
+  var cats = new Set();
+  w.forEach(x=>{
+    if(x.category) cats.add(x.category);
+  });
+
+  document.getElementById('weaponStats').innerHTML =
+    '<div class="stat-card"><div class="stat-num">'+w.length+'</div><div class="stat-label">Total</div></div>'+
+    '<div class="stat-card ssr"><div class="stat-num">'+r5+'</div><div class="stat-label">5-Star</div></div>'+
+    '<div class="stat-card sr"><div class="stat-num">'+r4+'</div><div class="stat-label">4-Star</div></div>'+
+    '<div class="stat-card"><div class="stat-num">'+cats.size+'</div><div class="stat-label">Categories</div></div>';
+
+  renderWeaponList(w);
+}
+
+function renderWeaponList(weapons){
+
+  if(!weapons || weapons.length===0){
+    document.getElementById('adminWeaponList').innerHTML =
+      '<div style="text-align:center;padding:60px 20px;color:#64748b;">'+
+      '<p style="font-size:48px;margin-bottom:16px;">&#128481;</p>'+
+      '<p>No weapons found</p>'+
+      '<button class="btn btn-gold" onclick="showAddWeaponForm()" style="margin-top:12px;">+ Add Weapon</button>'+
+      '</div>';
+    return;
+  }
+
+  var h='';
+
+  weapons.forEach(function(w){
+
+    /* ⭐ FIX NAME SYSTEM */
+    var weaponName = w.name_en || w.name || 'Unknown';
+
+    var icon = w.icon_url || w.image || 'https://placehold.co/80x80?text=No+Icon';
+
+    var rarityClass = w.rarity==5 ? 'ssr' : 'sr';
+    var rarityLabel = w.rarity==5 ? '5&#9733;' : '4&#9733;';
+
+    var tc={S:'#dc2626',A:'#f59e0b',B:'#3b82f6',C:'#6b7280'};
+
+    var tierBadge =
+      '<span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;background:'+
+      (tc[w.tier]||tc.B)+';color:#fff;margin-left:6px;">'+
+      (w.tier||'B')+
+      '</span>';
+
+    h+='<div class="admin-char-row" data-name="'+weaponName.toLowerCase()+'">';
+
+    h+='<div class="admin-char-info">'+
+       '<img src="'+icon+'" alt="'+weaponName+'" class="admin-char-thumb" style="border-radius:8px;object-fit:contain;background:var(--dark3);" onerror="this.src=\'https://placehold.co/80x80?text=Error\'">'+
+       '<div>';
+
+    h+='<div class="admin-char-name">'+weaponName+tierBadge+'</div>';
+
+    h+='<div class="admin-char-meta">'+
+       '<span class="rarity-tag '+rarityClass+'">'+rarityLabel+'</span> &bull; '+
+       (w.category||'N/A')+' &bull; '+
+       (w.role||'DPS')+' &bull; ATK '+
+       (w.equipment_atk||'?')+
+       '</div>';
+
+    h+='</div></div>';
+
+    h+='<div class="admin-char-actions">'+
+       '<a href="weapons.html" class="action-btn view-btn" title="View">&#128065;</a>'+
+       '<button class="action-btn edit-btn" title="Edit" onclick="editWeapon(\''+(w.id||w.slug)+'\')">&#9998;</button>'+
+       '<button class="action-btn delete-btn" title="Delete" onclick="deleteWeapon(\''+(w.id||w.slug)+'\',\''+weaponName.replace(/'/g,"\\'")+'\')">&#128465;</button>'+
+       '</div>';
+
+    h+='</div>';
+
+  });
+
+  document.getElementById('adminWeaponList').innerHTML = h;
+}
+
+function filterWeaponList(){
+  var s = document.getElementById('weaponAdminSearch').value.toLowerCase();
+
+  document.querySelectorAll('#adminWeaponList .admin-char-row')
+  .forEach(r=>{
+    r.style.display =
+      (r.getAttribute('data-name')||'').indexOf(s)!==-1 ? '' : 'none';
+  });
+}
     /* ── Weapon Form ── */
     function showAddWeaponForm(){
       editingWeaponId=null;tempWeaponIconFile=null;
